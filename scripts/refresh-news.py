@@ -42,7 +42,7 @@ TIMEZONE_OFFSET_HOURS = 5.5            # Sri Lanka (UTC+5:30) for the "Updated" 
 
 # Claude Haiku is the cheapest Claude model and plenty for a 4-sentence summary.
 LLM_MODEL = "claude-haiku-4-5-20251001"
-LLM_MAX_TOKENS = 350                   # hard cap — summaries are short
+LLM_MAX_TOKENS = 700                   # hard cap — comfortably fits a 6-sentence digest
 LLM_TIMEOUT_SECONDS = 30               # never block CI longer than this
 
 # RSS sources — public, no auth. Order matters: earlier feeds get higher priority
@@ -236,19 +236,39 @@ def build_summary_html_llm(items: list[dict]) -> str | None:
         "You write a one-paragraph top-stories digest for a personal AI "
         "dashboard. The reader is a CS student into cybersecurity and UI/UX. "
         "Voice: warm, direct, no jargon, no emojis, no hype words like "
-        "'groundbreaking' or 'revolutionary'. Exactly 3-4 sentences. "
-        "Synthesise common themes across the headlines rather than listing "
-        "them one by one. You may use <em>...</em> around product or company "
-        "names where it reads naturally; do not use any other HTML tags. "
-        "Start the paragraph with the literal phrase 'Top stories:' followed "
-        "by a space (this exact prefix will be wrapped in a <strong> tag by "
-        "the caller — write 'Top stories:' once and only once at the start). "
-        "Never invent facts beyond what the headlines literally say."
+        "'groundbreaking' or 'revolutionary' or 'game-changing'. "
+        "Length: 5 to 7 sentences. Long enough to be substantive, short "
+        "enough to skim with morning coffee. "
+        "Content rules: "
+        "(a) Name the specific products, companies, models, and tools the "
+        "headlines reference — not vague phrases like 'a major lab' or 'a "
+        "leading model'. If a headline mentions Claude Sonnet 4.6, say "
+        "<em>Claude Sonnet 4.6</em>, not 'a new Anthropic model'. "
+        "(b) Briefly say what each one actually is or does — one short "
+        "clause is enough — so a reader who hasn't seen the headlines still "
+        "understands. "
+        "(c) Group related items together (e.g. all the new model releases, "
+        "all the security stories, all the design-tool news) rather than "
+        "stepping through them headline-by-headline. "
+        "(d) Where it's natural, end with one sentence on the so-what for "
+        "Damian's cybersecurity or UI/UX work. If nothing in today's batch "
+        "is relevant to those tracks, skip it rather than forcing a tie-in. "
+        "Formatting: use <em>...</em> around product, model, and company "
+        "names. No other HTML tags. No markdown. No line breaks. "
+        "Start the paragraph with the literal phrase 'Top stories:' "
+        "followed by a space (this exact prefix will be wrapped in a "
+        "<strong> tag by the caller — write 'Top stories:' once and only "
+        "once at the very start). "
+        "Never invent facts beyond what the headlines literally say. "
+        "If you're unsure what a headline means, describe only what the "
+        "title and source make verifiable."
     )
 
     user_prompt = (
         "Write today's top-stories digest from these headlines:\n\n"
         f"{headlines}\n\n"
+        "Remember: name the specific products and companies, briefly "
+        "explain what each one is, group related items, 5 to 7 sentences. "
         "Reply with ONLY the paragraph — no preamble, no markdown, no "
         "newlines. Plain text plus optional <em>...</em> tags."
     )
