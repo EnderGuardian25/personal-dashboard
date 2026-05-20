@@ -1,13 +1,13 @@
 """
 refresh-news.py
 ================
-Rewrites the news section of ai-student-dashboard.html using fresh items
-from a curated list of AI-focused RSS feeds.
+Rewrites the news section of index.html using fresh items from a curated
+list of AI-focused RSS feeds, with a Claude-Haiku-written digest at the top.
 
-- No API keys required.
-- Stdlib + feedparser only.
+- Stdlib + feedparser. Optionally anthropic for the digest paragraph.
 - Touches ONLY the news block (#news-feed, .news-summary, #news-meta).
-  All other dashboard sections, styles, scripts are left untouched.
+- Silent fallback to a deterministic summary when ANTHROPIC_API_KEY is unset
+  or the API call fails for any reason.
 
 Run locally:   python refresh-news.py
 In CI:         called by .github/workflows/refresh-news.yml
@@ -40,7 +40,7 @@ TARGET_COUNT = 6                       # number of news items to show
 LOOKBACK_HOURS = 72                    # only consider items newer than this
 TIMEZONE_OFFSET_HOURS = 5.5            # Sri Lanka (UTC+5:30) for the "Updated" date
 
-# Claude Haiku is the cheapest Claude model and plenty for a 4-sentence summary.
+# Claude Haiku is the cheapest Claude model and plenty for a 6-sentence summary.
 LLM_MODEL = "claude-haiku-4-5-20251001"
 LLM_MAX_TOKENS = 700                   # hard cap — comfortably fits a 6-sentence digest
 LLM_TIMEOUT_SECONDS = 30               # never block CI longer than this
@@ -89,9 +89,9 @@ def domain_of(url: str) -> str:
         return ""
 
 
-def parse_entry_dt(entry) -> dt.datetime | None:
+def parse_entry_dt(entry):
     for key in ("published_parsed", "updated_parsed"):
-        struct = getattr(entry, key, None) or entry.get(key) if hasattr(entry, "get") else None
+        struct = getattr(entry, key, None) or (entry.get(key) if hasattr(entry, "get") else None)
         if struct:
             try:
                 return dt.datetime(*struct[:6], tzinfo=dt.timezone.utc)
@@ -100,29 +100,25 @@ def parse_entry_dt(entry) -> dt.datetime | None:
     return None
 
 
-def fetch_candidates() -> list[dict]:
+def fetch_candidates():
     """Pull recent entries from every feed and normalise them."""
     now = dt.datetime.now(dt.timezone.utc)
     cutoff = now - dt.timedelta(hours=LOOKBACK_HOURS)
-    candidates: list[dict] = []
-
+    candidates = []
     for source_name, url in FEEDS:
         try:
             parsed = feedparser.parse(url)
         except Exception as e:
             print(f"  [warn] {source_name}: {e}", file=sys.stderr)
             continue
-
         for entry in parsed.entries[:15]:
             title = (entry.get("title") or "").strip()
             link = (entry.get("link") or "").strip()
             if not title or not link:
                 continue
-
             pub = parse_entry_dt(entry)
             if pub and pub < cutoff:
                 continue
-
             text = title.lower()
             score = sum(1 for kw in PRIORITY_KEYWORDS if kw in text)
             candidates.append({
@@ -133,31 +129,26 @@ def fetch_candidates() -> list[dict]:
                 "pub":    pub or now,
                 "score":  score,
             })
-
     return candidates
 
 
-def pick_top(candidates: list[dict], n: int) -> list[dict]:
+def pick_top(candidates, n):
     """Rank by (priority score, recency); dedupe per domain so the list feels varied."""
     candidates.sort(key=lambda c: (-c["score"], -c["pub"].timestamp()))
-    picked: list[dict] = []
-    seen_domains: set[str] = set()
-    seen_titles: set[str] = set()
-
+    picked = []
+    seen_domains = set()
+    seen_titles = set()
     for c in candidates:
         title_key = re.sub(r"[^a-z0-9]+", " ", c["title"].lower()).strip()
         if title_key in seen_titles:
             continue
         if c["domain"] in seen_domains and len(picked) < n - 1:
-            # Allow second pass to fill remaining slots if needed
             continue
         picked.append(c)
         seen_domains.add(c["domain"])
         seen_titles.add(title_key)
         if len(picked) >= n:
             break
-
-    # If we still don't have enough, relax the per-domain dedupe.
     if len(picked) < n:
         for c in candidates:
             title_key = re.sub(r"[^a-z0-9]+", " ", c["title"].lower()).strip()
@@ -167,16 +158,15 @@ def pick_top(candidates: list[dict], n: int) -> list[dict]:
             seen_titles.add(title_key)
             if len(picked) >= n:
                 break
-
     return picked[:n]
 
 
 # ---------------------------------------------------------------------------
 # HTML rewriting
 # ---------------------------------------------------------------------------
-def build_news_items_html(items: list[dict]) -> str:
-    """Six <div class="news-item">…</div> blocks."""
-    blocks: list[str] = []
+def build_news_items_html(items):
+    """Six <div class="news-item">...</div> blocks."""
+    blocks = []
     for it in items:
         title = html.escape(it["title"])
         url = html_escape_attr(it["url"])
@@ -194,11 +184,8 @@ def build_news_items_html(items: list[dict]) -> str:
     return "\n".join(blocks)
 
 
-def build_summary_html_fallback(items: list[dict]) -> str:
-    """Deterministic top-story line — used when the LLM is unavailable.
-
-    Just concatenates the top 3 titles with their sources, inline.
-    """
+def build_summary_html_fallback(items):
+    """Deterministic top-story line — used when the LLM is unavailable."""
     top = items[:3]
     parts = []
     for it in top:
@@ -211,12 +198,11 @@ def build_summary_html_fallback(items: list[dict]) -> str:
     )
 
 
-def build_summary_html_llm(items: list[dict]) -> str | None:
-    """Ask Claude Haiku to write a 3-4 sentence digest of today's headlines.
+def build_summary_html_llm(items):
+    """Ask Claude Haiku to write a 5-7 sentence digest of today's headlines.
 
-    Returns the full <div class="news-summary">…</div> block, or None if the
-    LLM call fails for any reason (missing key, network, rate limit, etc.).
-    The caller is expected to fall back to build_summary_html_fallback().
+    Returns the full <div class="news-summary">...</div> block, or None on any
+    failure. The caller is expected to fall back to the deterministic version.
     """
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
@@ -227,7 +213,6 @@ def build_summary_html_llm(items: list[dict]) -> str | None:
     if not items:
         return None
 
-    # Compact, deterministic input — title + source per line, capped.
     headlines = "\n".join(
         f"- {it['title']} ({it['src']})" for it in items[:TARGET_COUNT]
     )
@@ -253,8 +238,20 @@ def build_summary_html_llm(items: list[dict]) -> str | None:
         "(d) Where it's natural, end with one sentence on the so-what for "
         "Damian's cybersecurity or UI/UX work. If nothing in today's batch "
         "is relevant to those tracks, skip it rather than forcing a tie-in. "
-        "Formatting: use <em>...</em> around product, model, and company "
-        "names. No other HTML tags. No markdown. No line breaks. "
+        "Formatting: use <em>...</em> ONLY around very short noun phrases "
+        "— specific product names ('Gemini 3.5 Flash'), model names "
+        "('Claude Sonnet 4.6'), or company names ('Figma', 'OpenAI'). "
+        "NEVER wrap entire clauses, sentences, descriptions, or anything "
+        "longer than about three words inside <em>. Examples of correct "
+        "use: <em>Gemini 3.5 Flash</em>, <em>Figma</em>, <em>Claude</em>. "
+        "Examples of WRONG use (do not do this): "
+        "<em>Google is shifting focus to agentic systems</em>, "
+        "<em>an upcoming agentic overhaul to search coming in 2026</em>. "
+        "If a sentence has no specific name worth emphasising, use no "
+        "<em> tags in it. Better to under-emphasise than to over-emphasise. "
+        "EVERY opening <em> tag must have a matching closing </em> tag — "
+        "never leave one unclosed. "
+        "No other HTML tags. No markdown. No line breaks. "
         "Start the paragraph with the literal phrase 'Top stories:' "
         "followed by a space (this exact prefix will be wrapped in a "
         "<strong> tag by the caller — write 'Top stories:' once and only "
@@ -285,7 +282,6 @@ def build_summary_html_llm(items: list[dict]) -> str | None:
         print(f"  [llm] Claude call failed: {e!r} — falling back", file=sys.stderr)
         return None
 
-    # The response should be a single text block; defensively flatten.
     try:
         text = "".join(
             block.text for block in resp.content if getattr(block, "type", "") == "text"
@@ -298,11 +294,39 @@ def build_summary_html_llm(items: list[dict]) -> str | None:
         return None
 
     # Strip the literal "Top stories:" the model was told to prepend, since we
-    # wrap it in <strong> ourselves. Be permissive about case + spacing.
+    # wrap it in <strong> ourselves.
     body = re.sub(r"^\s*top\s+stories\s*:\s*", "", text, count=1, flags=re.IGNORECASE)
 
     # Defensive: allow only a tiny whitelist of inline tags. Strip anything else.
     body = re.sub(r"</?(?!em\b)[^>]+>", "", body)
+
+    # Defensive: unwrap any <em> that wraps too much content. If the model
+    # over-applied emphasis (e.g. wrapping a whole clause), we'd rather lose
+    # the emphasis than have it dominate the paragraph visually.
+    MAX_EM_CHARS = 30
+    MAX_EM_WORDS = 4
+
+    def _maybe_unwrap_em(match):
+        inner = match.group(1)
+        if len(inner) > MAX_EM_CHARS or len(inner.split()) > MAX_EM_WORDS:
+            return inner
+        return f"<em>{inner}</em>"
+
+    body = re.sub(r"<em>([^<]*)</em>", _maybe_unwrap_em, body)
+
+    # Defensive: if the model emitted unbalanced <em> tags (i.e. opened one
+    # without closing it), the browser will implicitly extend the emphasis
+    # to the end of the paragraph, turning the whole summary bold+blue.
+    # When in doubt, drop ALL em tags.
+    open_count  = len(re.findall(r"<em\b[^>]*>", body))
+    close_count = len(re.findall(r"</em>", body))
+    if open_count != close_count:
+        print(
+            f"  [llm] unbalanced em tags ({open_count} open / {close_count} close) "
+            f"— stripping all emphasis",
+            file=sys.stderr,
+        )
+        body = re.sub(r"</?em\b[^>]*>", "", body)
 
     usage = getattr(resp, "usage", None)
     if usage:
@@ -319,25 +343,29 @@ def build_summary_html_llm(items: list[dict]) -> str | None:
     )
 
 
-def build_summary_html(items: list[dict]) -> str:
-    """Top-story paragraph. Tries Claude Haiku, falls back to deterministic.
-
-    The fallback path is taken silently when ANTHROPIC_API_KEY is unset, so
-    contributors can run the script locally without needing an API key.
-    """
+def build_summary_html(items):
+    """Top-story paragraph. Tries Claude Haiku, falls back to deterministic."""
     llm = build_summary_html_llm(items)
     if llm is not None:
         return llm
     return build_summary_html_fallback(items)
 
 
-def today_label() -> str:
-    """Date string like 'Updated 21 May 2026' in Sri Lanka time."""
+def today_label():
+    """Label like 'Updated 21 May 2026 · 07:14 SLT' in Sri Lanka time.
+
+    Includes the time-of-day so the dashboard surfaces when the last
+    refresh ran, not just which day — useful since GitHub Actions cron
+    can drift 5-15 minutes around the scheduled minute.
+    """
     now = dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=TIMEZONE_OFFSET_HOURS)
-    return f"Updated {now.day} {now.strftime('%B %Y')}"
+    return (
+        f"Updated {now.day} {now.strftime('%B %Y')} "
+        f"· {now.strftime('%H:%M')} SLT"
+    )
 
 
-def rewrite_html(src: str, items: list[dict]) -> str:
+def rewrite_html(src, items):
     # 1. Replace the news-meta date label
     src = re.sub(
         r'(<p class="section-sub" id="news-meta">)[^<]*(</p>)',
@@ -369,7 +397,7 @@ def rewrite_html(src: str, items: list[dict]) -> str:
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
-def main() -> int:
+def main():
     if not HTML_PATH.exists():
         print(f"ERROR: {HTML_PATH} not found", file=sys.stderr)
         return 1
