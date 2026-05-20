@@ -1,0 +1,27 @@
+# wrangler.toml — Cloudflare Worker config for the dashboard sync backend.
+#
+# Before first deploy:
+#   1. Replace the placeholder KV namespace id below with the real one printed by:
+#      wrangler kv namespace create DASHBOARD_KV
+#   2. Tighten ALLOWED_ORIGINS to your Pages URL before going live.
+#   3. Store the auth token as a secret (NOT a [vars] entry):
+#      wrangler secret put SYNC_TOKEN
+#
+# See ../docs/BACKEND-SETUP.md for the full walkthrough.
+
+name = "dashboard-sync"
+main = "src/worker.js"
+compatibility_date = "2024-09-23"
+
+# CORS allow-list. Comma-separated. Replace "*" with your real Pages URL
+# (e.g. "https://<your-username>.github.io") once you know it.
+[vars]
+ALLOWED_ORIGINS = "https://enderguardian25.github.io/personal-dashboard/"
+
+# KV binding — the script accesses it via env.DASHBOARD_KV.
+[[kv_namespaces]]
+binding = "DASHBOARD_KV"
+id = "122e0bef96ff4472a861cd6c29fd427e"
+
+[observability]
+enabled = true

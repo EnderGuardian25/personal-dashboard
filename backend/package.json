@@ -1,0 +1,16 @@
+{
+  "name": "dashboard-sync",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cloudflare Worker backing the AI Dashboard cross-device sync.",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "smoke": "bash scripts/smoke-test.sh"
+  },
+  "devDependencies": {
+    "wrangler": "^4.86.0"
+  }
+}

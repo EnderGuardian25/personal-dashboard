@@ -1,0 +1,37 @@
+  /* ====== CROSS-DEVICE SYNC ====== */
+  .sync-btn {
+    appearance: none;
+    background: var(--surface);
+    border: 1.5px solid var(--navy);
+    color: var(--navy);
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 10px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: background 0.12s ease, color 0.12s ease;
+  }
+  .sync-btn:hover { background: var(--surface-3); }
+  .sync-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--ink-3);
+    display: inline-block;
+    transition: background 0.15s ease;
+  }
+  .sync-btn[data-status="off"]     .sync-dot { background: var(--ink-3); }
+  .sync-btn[data-status="idle"]    .sync-dot { background: var(--blue); }
+  .sync-btn[data-status="syncing"] .sync-dot { background: var(--queue); animation: sync-pulse 0.9s infinite; }
+  .sync-btn[data-status="synced"]  .sync-dot { background: #16a34a; }
+  .sync-btn[data-status="error"]   .sync-dot { background: #b91c1c; }
+  .sync-btn[data-status="unauthorized"] .sync-dot { background: #b91c1c; }
+  @keyframes sync-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
