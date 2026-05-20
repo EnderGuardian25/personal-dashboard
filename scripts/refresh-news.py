@@ -16,12 +16,21 @@ from __future__ import annotations
 
 import datetime as dt
 import html
+import os
 import re
 import sys
 from pathlib import Path
 from urllib.parse import urlparse
 
 import feedparser  # pip install feedparser
+
+# Optional: Anthropic Claude for the top-story summary paragraph.
+# When ANTHROPIC_API_KEY is set in the environment we generate a real summary;
+# otherwise we silently fall back to a deterministic concatenation of titles.
+try:
+    import anthropic  # pip install anthropic
+except ImportError:
+    anthropic = None
 
 # ---------------------------------------------------------------------------
 # Config
@@ -30,6 +39,11 @@ HTML_PATH = Path(__file__).resolve().parent.parent / "index.html"
 TARGET_COUNT = 6                       # number of news items to show
 LOOKBACK_HOURS = 72                    # only consider items newer than this
 TIMEZONE_OFFSET_HOURS = 5.5            # Sri Lanka (UTC+5:30) for the "Updated" date
+
+# Claude Haiku is the cheapest Claude model and plenty for a 4-sentence summary.
+LLM_MODEL = "claude-haiku-4-5-20251001"
+LLM_MAX_TOKENS = 350                   # hard cap — summaries are short
+LLM_TIMEOUT_SECONDS = 30               # never block CI longer than this
 
 # RSS sources — public, no auth. Order matters: earlier feeds get higher priority
 # when we de-dup by source.
@@ -180,10 +194,10 @@ def build_news_items_html(items: list[dict]) -> str:
     return "\n".join(blocks)
 
 
-def build_summary_html(items: list[dict]) -> str:
-    """Top-story paragraph synthesised from the day's headlines.
+def build_summary_html_fallback(items: list[dict]) -> str:
+    """Deterministic top-story line — used when the LLM is unavailable.
 
-    Without an LLM we stick to a deterministic summary: the top 3 titles inline.
+    Just concatenates the top 3 titles with their sources, inline.
     """
     top = items[:3]
     parts = []
@@ -195,6 +209,106 @@ def build_summary_html(items: list[dict]) -> str:
         f'  <strong>Top stories:</strong> {body}.\n'
         '</div>'
     )
+
+
+def build_summary_html_llm(items: list[dict]) -> str | None:
+    """Ask Claude Haiku to write a 3-4 sentence digest of today's headlines.
+
+    Returns the full <div class="news-summary">…</div> block, or None if the
+    LLM call fails for any reason (missing key, network, rate limit, etc.).
+    The caller is expected to fall back to build_summary_html_fallback().
+    """
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        return None
+    if anthropic is None:
+        print("  [llm] anthropic package not installed — falling back", file=sys.stderr)
+        return None
+    if not items:
+        return None
+
+    # Compact, deterministic input — title + source per line, capped.
+    headlines = "\n".join(
+        f"- {it['title']} ({it['src']})" for it in items[:TARGET_COUNT]
+    )
+
+    system_prompt = (
+        "You write a one-paragraph top-stories digest for a personal AI "
+        "dashboard. The reader is a CS student into cybersecurity and UI/UX. "
+        "Voice: warm, direct, no jargon, no emojis, no hype words like "
+        "'groundbreaking' or 'revolutionary'. Exactly 3-4 sentences. "
+        "Synthesise common themes across the headlines rather than listing "
+        "them one by one. You may use <em>...</em> around product or company "
+        "names where it reads naturally; do not use any other HTML tags. "
+        "Start the paragraph with the literal phrase 'Top stories:' followed "
+        "by a space (this exact prefix will be wrapped in a <strong> tag by "
+        "the caller — write 'Top stories:' once and only once at the start). "
+        "Never invent facts beyond what the headlines literally say."
+    )
+
+    user_prompt = (
+        "Write today's top-stories digest from these headlines:\n\n"
+        f"{headlines}\n\n"
+        "Reply with ONLY the paragraph — no preamble, no markdown, no "
+        "newlines. Plain text plus optional <em>...</em> tags."
+    )
+
+    try:
+        client = anthropic.Anthropic(api_key=api_key, timeout=LLM_TIMEOUT_SECONDS)
+        resp = client.messages.create(
+            model=LLM_MODEL,
+            max_tokens=LLM_MAX_TOKENS,
+            system=system_prompt,
+            messages=[{"role": "user", "content": user_prompt}],
+        )
+    except Exception as e:
+        print(f"  [llm] Claude call failed: {e!r} — falling back", file=sys.stderr)
+        return None
+
+    # The response should be a single text block; defensively flatten.
+    try:
+        text = "".join(
+            block.text for block in resp.content if getattr(block, "type", "") == "text"
+        ).strip()
+    except Exception:
+        text = ""
+
+    if not text:
+        print("  [llm] empty response — falling back", file=sys.stderr)
+        return None
+
+    # Strip the literal "Top stories:" the model was told to prepend, since we
+    # wrap it in <strong> ourselves. Be permissive about case + spacing.
+    body = re.sub(r"^\s*top\s+stories\s*:\s*", "", text, count=1, flags=re.IGNORECASE)
+
+    # Defensive: allow only a tiny whitelist of inline tags. Strip anything else.
+    body = re.sub(r"</?(?!em\b)[^>]+>", "", body)
+
+    usage = getattr(resp, "usage", None)
+    if usage:
+        print(
+            f"  [llm] ok — in={usage.input_tokens} out={usage.output_tokens} "
+            f"model={LLM_MODEL}",
+            file=sys.stderr,
+        )
+
+    return (
+        '<div class="news-summary">\n'
+        f'  <strong>Top stories:</strong> {body}\n'
+        '</div>'
+    )
+
+
+def build_summary_html(items: list[dict]) -> str:
+    """Top-story paragraph. Tries Claude Haiku, falls back to deterministic.
+
+    The fallback path is taken silently when ANTHROPIC_API_KEY is unset, so
+    contributors can run the script locally without needing an API key.
+    """
+    llm = build_summary_html_llm(items)
+    if llm is not None:
+        return llm
+    return build_summary_html_fallback(items)
 
 
 def today_label() -> str:

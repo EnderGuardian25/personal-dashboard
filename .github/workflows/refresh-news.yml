@@ -33,9 +33,14 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: pip install feedparser
+        run: pip install feedparser anthropic
 
       - name: Refresh the news section
+        env:
+          # Optional. When unset the script silently falls back to a
+          # deterministic top-story line. When set the workflow uses
+          # Claude Haiku to write a real 3-4 sentence digest.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python scripts/refresh-news.py
 
       - name: Commit the updated HTML
