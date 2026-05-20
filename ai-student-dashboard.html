@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Dashboard</title>
+<style>
+  :root {
+    color-scheme: light;
+    /* Surfaces */
+    --bg: #dae5f0;
+    --surface: #f4f8fc;
+    --surface-2: #e8eff7;
+    --surface-3: #dbe5f0;
+    /* Lines */
+    --border: #b8c6d8;
+    --border-strong: #0a1628;
+    --border-mid: #4a5878;
+    /* Ink */
+    --ink: #0a1628;
+    --ink-2: #2d3748;
+    --ink-3: #6b7280;
+    /* Accents — navy family */
+    --navy: #0a1628;
+    --navy-2: #1e3a8a;
+    --blue: #2563eb;
+    --blue-soft: #e0e7ff;
+    --blue-mid: #3b5bdb;
+    /* Functional category tints (used sparingly) */
+    --cyber: #1e3a8a;
+    --cyber-soft: #e0e7ff;
+    --design: #0ea5e9;
+    --design-soft: #e0f2fe;
+    --learn: #0a1628;
+    --learn-soft: #eef0f4;
+    --queue: #b45309;
+    --queue-soft: #fff7ed;
+    /* Geometry */
+    --radius: 4px;
+    --radius-sm: 3px;
+    --radius-pill: 2px;
+    --shadow: 3px 3px 0 var(--navy);
+    --shadow-sm: 2px 2px 0 var(--navy);
+    /* Type */
+    --mono: "Courier New", "Courier Prime", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--mono);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.55;
+    font-size: 15.5px;
+  }
+  ::selection { background: var(--navy); color: #fff; }
+  .container {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+
+  /* HEADER */
+  header.hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 22px;
+    padding-bottom: 18px;
+    border-bottom: 2px solid var(--navy);
+  }
+  .hero-title h1 {
+    font-family: var(--mono);
+    font-size: 30px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+    color: var(--navy);
+    text-transform: uppercase;
+  }
+  .hero-title h1::before {
+    content: "// ";
+    color: var(--blue);
+    font-weight: 400;
+  }
+  .hero-title p {
+    margin: 0;
+    color: var(--ink-3);
+    font-size: 13.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .hero-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13.5px;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .hero-meta .date {
+    font-weight: 700;
+    color: var(--navy);
+    padding: 6px 10px;
+    border: 1.5px solid var(--navy);
+    background: var(--surface);
+  }
+
+  /* TRACK FILTER TABS */
+  .track-filter {
+    display: flex;
+    gap: 0;
+    margin-bottom: 26px;
+    flex-wrap: wrap;
+    border: 1.5px solid var(--navy);
+    background: var(--surface);
+    width: fit-content;
+    box-shadow: var(--shadow-sm);
+  }
+  .track-tab {
+    appearance: none;
+    border: none;
+    border-right: 1.5px solid var(--navy);
+    background: var(--surface);
+    color: var(--ink-2);
+    padding: 10px 18px;
+    font-family: var(--mono);
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    transition: background 0.12s ease, color 0.12s ease;
+  }
+  .track-tab:last-child { border-right: none; }
+  .track-tab:hover { background: var(--surface-3); color: var(--navy); }
+  .track-tab.active.all,
+  .track-tab.active.cyber,
+  .track-tab.active.design {
+    background: var(--navy);
+    color: #fff;
+  }
+  .track-tab .count { font-size: 14px; opacity: 0.7; font-weight: 500; }
+
+  /* Track visibility */
+  body[data-track="cyber"] .track-design { display: none; }
+  body[data-track="design"] .track-cyber { display: none; }
+
+  /* GRID LAYOUT */
+  .grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 22px;
+  }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .col { display: flex; flex-direction: column; gap: 22px; }
+
+  /* SECTIONS — beefier panels */
+  section.card {
+    background: var(--surface);
+    border: 1.5px solid var(--navy);
+    border-radius: var(--radius);
+    padding: 0;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  section.card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: var(--blue);
+  }
+  section.card > * {
+    padding-left: 22px;
+    padding-right: 22px;
+  }
+  section.card > *:first-of-type { padding-top: 22px; }
+  section.card > *:last-child { padding-bottom: 22px; }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    gap: 12px;
+    border-bottom: 1px dashed var(--border);
+    padding-bottom: 12px;
+  }
+  .section-head h2 {
+    font-family: var(--mono);
+    font-size: 15.5px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-head h2::before {
+    content: "▸";
+    color: var(--blue);
+  }
+  .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 3px 7px;
+    border-radius: var(--radius-pill);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border: 1px solid currentColor;
+  }
+  .badge.live    { color: var(--blue); background: var(--blue-soft); }
+  .badge.cyber   { color: var(--cyber); background: var(--cyber-soft); }
+  .badge.design  { color: var(--design); background: var(--design-soft); }
+  .badge.learn   { color: var(--navy); background: var(--surface-3); }
+  .badge.queue   { color: var(--queue); background: var(--queue-soft); }
+  .badge.curated { color: var(--ink-3); background: var(--surface-3); }
+  .section-sub {
+    font-size: 13.5px;
+    color: var(--ink-3);
+    margin: 0;
+    font-family: var(--mono);
+  }
+
+  /* NEWS FEED */
+  .news-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .news-item {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--blue);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    transition: border-color 0.12s ease, background 0.12s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .news-item:hover {
+    background: var(--surface-2);
+    border-color: var(--navy);
+    border-left-color: var(--blue);
+  }
+  .news-item .body { flex: 1; min-width: 0; }
+  .news-item a.title-link {
+    color: var(--navy);
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 14.5px;
+    font-family: var(--mono);
+    display: block;
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+  .news-item a.title-link:hover { color: var(--blue); text-decoration: underline; text-decoration-style: dashed; text-underline-offset: 3px; }
+  .news-item .src {
+    font-size: 13px;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: var(--mono);
+  }
+  .save-btn {
+    appearance: none;
+    background: var(--surface);
+    border: 1.5px solid var(--ink-3);
+    color: var(--ink-2);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 4px 8px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    font-weight: 700;
+    flex-shrink: 0;
+    transition: all 0.12s ease;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .save-btn:hover { color: var(--queue); border-color: var(--queue); background: var(--queue-soft); }
+  .save-btn.saved { color: #fff; border-color: var(--queue); background: var(--queue); }
+  .news-summary {
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--navy);
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    color: var(--ink-2);
+    line-height: 1.65;
+    font-family: var(--mono);
+  }
+  .news-summary strong {
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 14px;
+    display: inline-block;
+    margin-right: 4px;
+  }
+  .news-summary em { color: var(--blue); font-style: normal; font-weight: 700; }
+  .empty, .error {
+    padding: 20px;
+    text-align: center;
+    color: var(--ink-3);
+    font-size: 13.5px;
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-sm);
+    font-family: var(--mono);
+  }
+
+  /* TOOL CARDS */
+  .tool-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  @media (max-width: 600px) { .tool-grid { grid-template-columns: 1fr; } }
+  .tool {
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    transition: all 0.12s ease;
+  }
+  .tool:hover {
+    border-color: var(--navy);
+    background: var(--surface-2);
+    transform: translate(-1px, -1px);
+    box-shadow: 2px 2px 0 var(--navy);
+  }
+  .tool h3 {
+    margin: 0 0 4px;
+    font-family: var(--mono);
+    font-size: 13.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .tool h3 a { color: var(--navy); text-decoration: none; }
+  .tool h3 a:hover { color: var(--blue); }
+  .tool p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--ink-2);
+    line-height: 1.5;
+    font-family: var(--mono);
+  }
+  .tool .tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: var(--radius-pill);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 8px;
+    background: var(--surface);
+    border: 1px solid var(--ink-3);
+    color: var(--ink-2);
+  }
+  .tool .tag.free     { color: #fff; border-color: var(--navy); background: var(--navy); }
+  .tool .tag.paid     { color: var(--ink-2); }
+  .tool .tag.freemium { color: var(--blue); border-color: var(--blue); background: var(--blue-soft); }
+
+  /* LEARNING / RESOURCES */
+  .resource-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .resource {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    transition: all 0.12s ease;
+  }
+  .resource:hover { border-color: var(--navy); background: var(--surface-2); }
+  .resource.done { opacity: 0.5; background: var(--surface-3); }
+  .resource.done .body h3 { text-decoration: line-through; }
+  .resource .check {
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+    border: 1.5px solid var(--navy);
+    background: var(--surface);
+    cursor: pointer;
+    appearance: none;
+    flex-shrink: 0;
+    margin-top: 3px;
+    position: relative;
+    transition: all 0.12s ease;
+  }
+  .resource .check:hover { background: var(--surface-3); }
+  .resource .check:checked {
+    background: var(--navy);
+    border-color: var(--navy);
+  }
+  .resource .check:checked::after {
+    content: "";
+    position: absolute;
+    top: 1px;
+    left: 4px;
+    width: 4px;
+    height: 8px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  .resource .body { flex: 1; min-width: 0; }
+  .resource h3 {
+    margin: 0 0 2px;
+    font-family: var(--mono);
+    font-size: 13.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .resource h3 a { color: var(--navy); text-decoration: none; }
+  .resource h3 a:hover { color: var(--blue); }
+  .resource p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--ink-3);
+    font-family: var(--mono);
+  }
+
+  /* PROGRESS RING */
+  .progress-ring {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--navy);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .progress-ring svg {
+    width: 34px;
+    height: 34px;
+    transform: rotate(-90deg);
+  }
+  .progress-ring .bg {
+    fill: none;
+    stroke: var(--border);
+    stroke-width: 4;
+  }
+  .progress-ring .fg {
+    fill: none;
+    stroke: var(--blue);
+    stroke-width: 4;
+    stroke-linecap: butt;
+    transition: stroke-dashoffset 0.4s ease;
+  }
+
+  /* READING QUEUE */
+  .queue-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .queue-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--queue);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+  }
+  .queue-item .check {
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+    border: 1.5px solid var(--queue);
+    background: var(--surface);
+    cursor: pointer;
+    appearance: none;
+    flex-shrink: 0;
+    margin-top: 3px;
+    position: relative;
+    transition: all 0.12s ease;
+  }
+  .queue-item .check:hover { background: var(--queue-soft); }
+  .queue-item .check:checked {
+    background: var(--queue);
+    border-color: var(--queue);
+  }
+  .queue-item .check:checked::after {
+    content: "";
+    position: absolute;
+    top: 1px;
+    left: 4px;
+    width: 4px;
+    height: 8px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  .queue-item.done .title { text-decoration: line-through; opacity: 0.55; }
+  .queue-item .body { flex: 1; min-width: 0; }
+  .queue-item .title {
+    display: block;
+    color: var(--navy);
+    text-decoration: none;
+    font-family: var(--mono);
+    font-size: 13.5px;
+    font-weight: 700;
+    margin-bottom: 3px;
+    word-break: break-word;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+  .queue-item a.title:hover { color: var(--queue); }
+  .queue-item .src {
+    font-size: 13px;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: var(--mono);
+  }
+  .queue-item .remove {
+    appearance: none;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--ink-3);
+    font-family: var(--mono);
+    font-size: 17px;
+    line-height: 1;
+    padding: 2px 7px;
+    cursor: pointer;
+    border-radius: var(--radius-pill);
+    flex-shrink: 0;
+    font-weight: 700;
+  }
+  .queue-item .remove:hover { color: #fff; background: var(--queue); border-color: var(--queue); }
+  .queue-empty {
+    padding: 16px;
+    text-align: center;
+    color: var(--ink-3);
+    font-family: var(--mono);
+    font-size: 14px;
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .queue-clear {
+    appearance: none;
+    background: transparent;
+    border: 1px solid var(--ink-3);
+    color: var(--ink-3);
+    font-family: var(--mono);
+    font-size: 13px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: var(--radius-pill);
+  }
+  .queue-clear:hover { color: #fff; background: var(--queue); border-color: var(--queue); }
+
+  /* PROMPT LIBRARY */
+  .prompt-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .prompt {
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--navy);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    background: var(--surface);
+    position: relative;
+  }
+  .prompt-title {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .prompt-text {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink-2);
+    background: var(--surface-3);
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-word;
+    border: 1px solid var(--border);
+  }
+  .copy-btn {
+    appearance: none;
+    background: var(--surface);
+    border: 1.5px solid var(--ink-3);
+    color: var(--ink-2);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 3px 8px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+  }
+  .copy-btn:hover { color: var(--blue); border-color: var(--blue); background: var(--blue-soft); }
+  .copy-btn.copied { color: #fff; border-color: var(--navy); background: var(--navy); }
+
+  /* DEEPER READS */
+  .reads {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .read {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--navy);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    transition: all 0.12s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .read:hover { background: var(--surface-2); border-color: var(--navy); }
+  .read .body { flex: 1; min-width: 0; }
+  .read h3 {
+    margin: 0 0 3px;
+    font-family: var(--mono);
+    font-size: 13.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .read h3 a { color: var(--navy); text-decoration: none; }
+  .read h3 a:hover { color: var(--blue); }
+  .read p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--ink-3);
+    line-height: 1.5;
+    font-family: var(--mono);
+  }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    color: var(--ink-3);
+    font-family: var(--mono);
+    font-size: 14px;
+    margin-top: 32px;
+    padding-top: 18px;
+    border-top: 2px solid var(--navy);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  footer a { color: var(--navy); text-decoration: underline; text-decoration-style: dashed; text-underline-offset: 3px; }
+</style>
+</head>
+<body data-track="all">
+<div class="container">
+
+  <!-- HEADER -->
+  <header class="hero">
+    <div class="hero-title">
+      <h1>AI Dashboard</h1>
+      <p>Daily AI updates · cybersecurity · UI/UX · learning resources</p>
+    </div>
+    <div class="hero-meta">
+      <span class="date" id="today-date">—</span>
+    </div>
+  </header>
+
+  <!-- TRACK FILTER TABS -->
+  <div class="track-filter" role="tablist" aria-label="Track filter">
+    <button class="track-tab all active" data-track-btn="all" role="tab" aria-selected="true">
+      <span>All tracks</span>
+    </button>
+    <button class="track-tab cyber" data-track-btn="cyber" role="tab" aria-selected="false">
+      <span>🔒 Cyber only</span>
+    </button>
+    <button class="track-tab design" data-track-btn="design" role="tab" aria-selected="false">
+      <span>🎨 Design only</span>
+    </button>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT COLUMN -->
+    <div class="col">
+
+      <!-- DAILY AI NEWS -->
+      <section class="card">
+        <div class="section-head">
+          <h2>📰 Today in AI <span class="badge live">Daily</span></h2>
+          <p class="section-sub" id="news-meta">Updated 20 May 2026</p>
+        </div>
+        <div class="news-summary">
+          <strong>Top story:</strong> Google I/O 2026 dominated the week — <em>Gemini Spark</em> launched as a general-purpose AI agent inside the Gemini app, alongside a new world model called <em>Omni</em>. OpenAI rolled out <em>GPT-5.5 Instant</em> as the default ChatGPT model, with memory that searches past chats, files and Gmail. Anthropic is closing a $30B+ raise at a $900B valuation, and the US Commerce Department's CAISI finalized pre-deployment evaluation deals with all five major frontier labs.
+        </div>
+        <div id="news-feed" class="news-list">
+          <div class="news-item">
+            <div class="body">
+              <a class="title-link" href="https://www.cnbc.com/2026/05/19/google-ai-ultra-gemini-spark-omni.html" target="_blank" rel="noopener">Google debuts Gemini Spark and Omni world model at I/O 2026</a>
+              <div class="src">cnbc.com · Product launch</div>
+            </div>
+            <button class="save-btn" data-save data-title="Google debuts Gemini Spark and Omni world model at I/O 2026" data-url="https://www.cnbc.com/2026/05/19/google-ai-ultra-gemini-spark-omni.html" data-src="cnbc.com · Product launch">＋ Save</button>
+          </div>
+          <div class="news-item">
+            <div class="body">
+              <a class="title-link" href="https://llm-stats.com/llm-updates" target="_blank" rel="noopener">GPT-5.5 Instant becomes default ChatGPT model</a>
+              <div class="src">llm-stats.com · Model release</div>
+            </div>
+            <button class="save-btn" data-save data-title="GPT-5.5 Instant becomes default ChatGPT model" data-url="https://llm-stats.com/llm-updates" data-src="llm-stats.com · Model release">＋ Save</button>
+          </div>
+          <div class="news-item">
+            <div class="body">
+              <a class="title-link" href="https://www.buildfastwithai.com/blogs/ai-news-today-may-18-2026" target="_blank" rel="noopener">13 biggest AI stories — May 18 2026</a>
+              <div class="src">buildfastwithai.com · Digest</div>
+            </div>
+            <button class="save-btn" data-save data-title="13 biggest AI stories — May 18 2026" data-url="https://www.buildfastwithai.com/blogs/ai-news-today-may-18-2026" data-src="buildfastwithai.com · Digest">＋ Save</button>
+          </div>
+          <div class="news-item">
+            <div class="body">
+              <a class="title-link" href="https://www.cnbc.com/2026/05/12/google-races-put-gemini-at-center-of-android-before-apples-ai-reboot.html" target="_blank" rel="noopener">Google races to put Gemini at the center of Android</a>
+              <div class="src">cnbc.com · Mobile AI</div>
+            </div>
+            <button class="save-btn" data-save data-title="Google races to put Gemini at the center of Android" data-url="https://www.cnbc.com/2026/05/12/google-races-put-gemini-at-center-of-android-before-apples-ai-reboot.html" data-src="cnbc.com · Mobile AI">＋ Save</button>
+          </div>
+          <div class="news-item">
+            <div class="body">
+              <a class="title-link" href="https://www.cnbc.com/2026/05/05/ai-oversight-trump-google-microsoft-xai.html" target="_blank" rel="noopener">CAISI finalizes pre-deployment evals with frontier labs</a>
+              <div class="src">cnbc.com · Policy &amp; oversight</div>
+            </div>
+            <button class="save-btn" data-save data-title="CAISI finalizes pre-deployment evals with frontier labs" data-url="https://www.cnbc.com/2026/05/05/ai-oversight-trump-google-microsoft-xai.html" data-src="cnbc.com · Policy &amp; oversight">＋ Save</button>
+          </div>
+          <div class="news-item">
+            <div class="body">
+              <a class="title-link" href="https://techdg.in/latest-ai-updates-may-2026-global-ai-news-trends/" target="_blank" rel="noopener">What OpenAI, Google &amp; Meta did this week (May 2026)</a>
+              <div class="src">techdg.in · Weekly roundup</div>
+            </div>
+            <button class="save-btn" data-save data-title="What OpenAI, Google &amp; Meta did this week (May 2026)" data-url="https://techdg.in/latest-ai-updates-may-2026-global-ai-news-trends/" data-src="techdg.in · Weekly roundup">＋ Save</button>
+          </div>
+        </div>
+        <p style="margin-top:14px; font-size:12px; color:var(--ink-3); text-align:center;">
+          💬 Refreshes automatically each morning at 7am. Ask in chat anytime to refresh manually.
+        </p>
+      </section>
+
+      <!-- CYBERSECURITY AI TOOLS -->
+      <section class="card track-cyber">
+        <div class="section-head">
+          <h2>🔒 AI for Cybersecurity <span class="badge cyber">Your major</span></h2>
+        </div>
+        <p class="section-sub" style="margin-bottom:14px;">Tools and techniques to apply AI in security work — threat detection, code analysis, secure coding, training.</p>
+        <div class="tool-grid">
+          <div class="tool">
+            <h3><a href="https://snyk.io" target="_blank" rel="noopener">Snyk + DeepCode AI</a></h3>
+            <p>Developer-first security platform. AI scans your code, dependencies, containers and IaC and suggests precise fixes. Great for learning secure coding patterns.</p>
+            <span class="tag freemium">Free tier</span>
+          </div>
+          <div class="tool">
+            <h3><a href="https://huntr.com" target="_blank" rel="noopener">Huntr</a></h3>
+            <p>Bug-bounty platform focused on open-source AI/ML supply-chain vulnerabilities. Perfect playground for cybersecurity students to learn AI-specific attack vectors.</p>
+            <span class="tag free">Free</span>
+          </div>
+          <div class="tool">
+            <h3><a href="https://www.tryhackme.com" target="_blank" rel="noopener">TryHackMe AI Rooms</a></h3>
+            <p>Hands-on rooms covering prompt injection, LLM jailbreaks, AI-assisted pentesting, and using Copilot-style agents for recon and CTFs.</p>
+            <span class="tag freemium">Freemium</span>
+          </div>
+          <div class="tool">
+            <h3><a href="https://owasp.org/www-project-top-10-for-large-language-model-applications/" target="_blank" rel="noopener">OWASP LLM Top 10</a></h3>
+            <p>Canonical guide to LLM security risks: prompt injection, training-data poisoning, model DoS, sensitive disclosure. Required reading.</p>
+            <span class="tag free">Free</span>
+          </div>
+          <div class="tool">
+            <h3><a href="https://github.com/leondz/garak" target="_blank" rel="noopener">garak (NVIDIA)</a></h3>
+            <p>Open-source LLM vulnerability scanner — probes models for jailbreaks, leakage, hallucination. Like nmap for language models.</p>
+            <span class="tag free">Free / OSS</span>
+          </div>
+          <div class="tool">
+            <h3><a href="https://www.cybrary.it" target="_blank" rel="noopener">Cybrary + Disco</a></h3>
+            <p>AI-personalised cyber training paths with virtual labs, real-time feedback and adaptive difficulty.</p>
+            <span class="tag freemium">Freemium</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- UI/UX AI TOOLS -->
+      <section class="card track-design">
+        <div class="section-head">
+          <h2>🎨 AI for UI/UX Design <span class="badge design">Your craft</span></h2>
+        </div>
+        <p class="section-sub" style="margin-bottom:14px;">From idea to high-fidelity in minutes. Figma plugins and AI assistants worth your time.</p>
+        <div class="tool-grid">
+          <div class="tool">
+            <h3><a href="https://uxpilot.ai" target="_blank" rel="noopener">UX Pilot</a></h3>
+            <p>Text → editable wireframes and hi-fi screens inside Figma. Validates designs with predictive attention heatmaps. 7 free generations.</p>
+            <span class="tag freemium">Free tier</span>
+          </div>
+          <div class="tool">
+            <h3><a href="https://relume.io" target="_blank" rel="noopener">Relume</a></h3>
+            <p>Project description → full sitemap + editable wireframes in minutes. 1,000+ production-ready components.</p>
+            <span class="tag freemium">Free tier</span>
+          </div>
+          <div class="tool">
+            <h3><a href="https://magician.design" target="_blank" rel="noopener">Magician for Figma</a></h3>
+            <p>Generate copy, icons and images from short prompts without leaving Figma. The most popular AI plugin.</p>
+            <span class="tag paid">Paid</span>
+          </div>
+          <div class="tool">
+            <h3><a href="https://www.getstark.co" target="_blank" rel="noopener">Stark</a></h3>
+            <p>Gold standard for accessibility in Figma. AI checks contrast, suggests alt text, simulates vision impairments, flags WCAG.</p>
+            <span class="tag freemium">Free tier</span>
+          </div>
+          <div class="tool">
+            <h3><a href="https://clueify.com" target="_blank" rel="noopener">Clueify</a></h3>
+            <p>Predicts how users will interact with your design before a single usability test — heatmaps for clicks, scroll and focus.</p>
+            <span class="tag paid">Paid</span>
+          </div>
+          <div class="tool">
+            <h3><a href="https://firefly.adobe.com" target="_blank" rel="noopener">Adobe Firefly</a></h3>
+            <p>Generate images, mockups and design assets. Useful when you need custom illustrations or hero imagery fast.</p>
+            <span class="tag freemium">Free tier</span>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="col">
+
+      <!-- READING QUEUE -->
+      <section class="card">
+        <div class="section-head">
+          <h2>🔖 Reading Queue <span class="badge queue">Saved</span></h2>
+          <button class="queue-clear" id="queue-clear" title="Clear all" style="display:none;">Clear all</button>
+        </div>
+        <p class="section-sub" style="margin-bottom:14px;">Tap "Save" on any news item or deeper read to come back to it later. Check it off when done.</p>
+        <div id="queue-list" class="queue-list">
+          <div class="queue-empty">Nothing saved yet — your queue is clean.</div>
+        </div>
+      </section>
+
+      <!-- LEARNING RESOURCES -->
+      <section class="card">
+        <div class="section-head">
+          <h2>📚 Learning Path <span class="badge learn">Curated</span></h2>
+          <div class="progress-ring" id="progress-ring" aria-label="Learning path progress">
+            <svg viewBox="0 0 36 36" aria-hidden="true">
+              <circle class="bg" cx="18" cy="18" r="15"></circle>
+              <circle class="fg" cx="18" cy="18" r="15" stroke-dasharray="94.25" stroke-dashoffset="94.25"></circle>
+            </svg>
+            <span id="progress-label">0 / 6</span>
+          </div>
+        </div>
+        <p class="section-sub" style="margin-bottom:14px;">Build real AI skills as a CS student. Tick each one as you finish — progress persists.</p>
+        <div class="resource-list" id="resource-list">
+          <div class="resource" data-key="learn-1">
+            <input type="checkbox" class="check" data-check />
+            <div class="body">
+              <h3><a href="https://www.deeplearning.ai/courses/ai-for-everyone" target="_blank" rel="noopener">AI for Everyone — DeepLearning.AI</a></h3>
+              <p>Free audit. Andrew Ng's intro. Vocabulary, what AI can/can't do, how to work with AI teams.</p>
+            </div>
+          </div>
+          <div class="resource" data-key="learn-2">
+            <input type="checkbox" class="check" data-check />
+            <div class="body">
+              <h3><a href="https://www.coursera.org/specializations/deep-learning" target="_blank" rel="noopener">Deep Learning Specialization</a></h3>
+              <p>5-course track, audit free. Neural nets, CNNs, sequence models. The most cited learner-path in ML.</p>
+            </div>
+          </div>
+          <div class="resource" data-key="learn-3">
+            <input type="checkbox" class="check" data-check />
+            <div class="body">
+              <h3><a href="https://ocw.mit.edu/courses/6-s191-introduction-to-deep-learning-january-iap-2024/" target="_blank" rel="noopener">MIT 6.S191 — Intro to Deep Learning</a></h3>
+              <p>Completely free. Lectures, labs, problem sets. Updated annually with current research.</p>
+            </div>
+          </div>
+          <div class="resource" data-key="learn-4">
+            <input type="checkbox" class="check" data-check />
+            <div class="body">
+              <h3><a href="https://learnprompting.org" target="_blank" rel="noopener">Learn Prompting</a></h3>
+              <p>Free open-source course on prompt engineering and adversarial prompting — useful for both your cyber and design tracks.</p>
+            </div>
+          </div>
+          <div class="resource" data-key="learn-5">
+            <input type="checkbox" class="check" data-check />
+            <div class="body">
+              <h3><a href="https://huggingface.co/learn" target="_blank" rel="noopener">Hugging Face Learn</a></h3>
+              <p>Free hands-on NLP, audio, RL, and agents courses. Code along with real models.</p>
+            </div>
+          </div>
+          <div class="resource" data-key="learn-6">
+            <input type="checkbox" class="check" data-check />
+            <div class="body">
+              <h3><a href="https://education.github.com/pack" target="_blank" rel="noopener">GitHub Student Developer Pack</a></h3>
+              <p>Free Copilot Pro + dozens of dev tools as a student. The single highest-leverage signup of your degree.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- PROMPT LIBRARY -->
+        <h2 style="font-size:17px; font-weight:700; margin:22px 0 4px;">⚡ Quick Prompts</h2>
+        <p class="section-sub">Click to copy. Tailored to your majors.</p>
+        <div class="prompt-list">
+          <div class="prompt">
+            <div class="prompt-title"><span>🔒 Code security audit</span><button class="copy-btn" data-copy>Copy</button></div>
+            <div class="prompt-text">Act as a senior security engineer. Review the following code for vulnerabilities (OWASP Top 10, input validation, auth, crypto misuse). For each issue: severity, line, exploit scenario, fix. Code:&#10;&lt;PASTE&gt;</div>
+          </div>
+          <div class="prompt">
+            <div class="prompt-title"><span>🎨 UX critique on a screenshot</span><button class="copy-btn" data-copy>Copy</button></div>
+            <div class="prompt-text">You are a senior product designer. Critique this UI for: visual hierarchy, accessibility (WCAG AA), information density, microcopy. Give 5 concrete, prioritised improvements with rationale.</div>
+          </div>
+          <div class="prompt">
+            <div class="prompt-title"><span>📖 Concept teacher (Feynman)</span><button class="copy-btn" data-copy>Copy</button></div>
+            <div class="prompt-text">Explain &lt;TOPIC&gt; like I'm a CS undergrad who knows the basics. Use one analogy, one worked example, and end by asking me 3 questions to check I understood. Don't move on until I answer.</div>
+          </div>
+          <div class="prompt">
+            <div class="prompt-title"><span>🐛 Debug coach (no spoilers)</span><button class="copy-btn" data-copy>Copy</button></div>
+            <div class="prompt-text">I'm stuck on this bug. Don't give me the fix. Ask me targeted diagnostic questions one at a time until I find it myself. Bug: &lt;PASTE&gt;</div>
+          </div>
+          <div class="prompt">
+            <div class="prompt-title"><span>📝 Study-notes → flashcards</span><button class="copy-btn" data-copy>Copy</button></div>
+            <div class="prompt-text">Turn these notes into Anki flashcards. Use cloze deletion where useful. Front: question. Back: concise answer (≤2 sentences). Group by topic. Notes:&#10;&lt;PASTE&gt;</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DEEPER READS -->
+      <section class="card">
+        <div class="section-head">
+          <h2>🔗 Deeper Reads <span class="badge curated">Long-form</span></h2>
+        </div>
+        <p class="section-sub" style="margin-bottom:14px;">Curated long-form on AI, security and design. Worth a coffee break.</p>
+        <div class="reads">
+          <div class="read track-cyber">
+            <div class="body">
+              <h3><a href="https://owasp.org/www-project-top-10-for-large-language-model-applications/" target="_blank" rel="noopener">OWASP Top 10 for LLM Applications</a></h3>
+              <p>The reference document for AI security risks. If you read one thing this month for your cyber track, make it this.</p>
+            </div>
+            <button class="save-btn" data-save data-title="OWASP Top 10 for LLM Applications" data-url="https://owasp.org/www-project-top-10-for-large-language-model-applications/" data-src="owasp.org · Deeper read">＋ Save</button>
+          </div>
+          <div class="read track-design">
+            <div class="body">
+              <h3><a href="https://www.figma.com/resource-library/ai-tools-for-ux-designers/" target="_blank" rel="noopener">Figma — Top AI Tools for UX Designers 2026</a></h3>
+              <p>Figma's own roundup of how AI is reshaping design work. Practical, with examples for each tool category.</p>
+            </div>
+            <button class="save-btn" data-save data-title="Figma — Top AI Tools for UX Designers 2026" data-url="https://www.figma.com/resource-library/ai-tools-for-ux-designers/" data-src="figma.com · Deeper read">＋ Save</button>
+          </div>
+          <div class="read">
+            <div class="body">
+              <h3><a href="https://huggingface.co/papers/trending" target="_blank" rel="noopener">Hugging Face — Trending Papers</a></h3>
+              <p>Daily-updated list of the most-discussed AI research. Skim titles weekly to stay current on what's actually shipping.</p>
+            </div>
+            <button class="save-btn" data-save data-title="Hugging Face — Trending Papers" data-url="https://huggingface.co/papers/trending" data-src="huggingface.co · Deeper read">＋ Save</button>
+          </div>
+          <div class="read">
+            <div class="body">
+              <h3><a href="https://www.anthropic.com/news" target="_blank" rel="noopener">Anthropic Research &amp; News</a></h3>
+              <p>Safety, interpretability, alignment research from the makers of Claude. Strong overlap with cybersecurity thinking.</p>
+            </div>
+            <button class="save-btn" data-save data-title="Anthropic Research &amp; News" data-url="https://www.anthropic.com/news" data-src="anthropic.com · Deeper read">＋ Save</button>
+          </div>
+          <div class="read">
+            <div class="body">
+              <h3><a href="https://openai.com/research/" target="_blank" rel="noopener">OpenAI Research</a></h3>
+              <p>Original papers and posts. Cuts through media noise — read the source before the hot take.</p>
+            </div>
+            <button class="save-btn" data-save data-title="OpenAI Research" data-url="https://openai.com/research/" data-src="openai.com · Deeper read">＋ Save</button>
+          </div>
+          <div class="read track-design">
+            <div class="body">
+              <h3><a href="https://www.lennysnewsletter.com" target="_blank" rel="noopener">Lenny's Newsletter (Product + AI)</a></h3>
+              <p>Product strategy with strong AI threads — useful for the UI/UX angle and how teams adopt AI tools.</p>
+            </div>
+            <button class="save-btn" data-save data-title="Lenny's Newsletter (Product + AI)" data-url="https://www.lennysnewsletter.com" data-src="lennysnewsletter.com · Deeper read">＋ Save</button>
+          </div>
+          <div class="read track-cyber">
+            <div class="body">
+              <h3><a href="https://simonwillison.net" target="_blank" rel="noopener">Simon Willison's Weblog</a></h3>
+              <p>The best independent daily log on practical AI tooling, prompt injection, and LLM craft. Subscribe.</p>
+            </div>
+            <button class="save-btn" data-save data-title="Simon Willison's Weblog" data-url="https://simonwillison.net" data-src="simonwillison.net · Deeper read">＋ Save</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <footer>
+    Tools and resources curated for Damian — cybersecurity + UI/UX track. News refreshes automatically every morning at 7am.
+  </footer>
+
+</div>
+
+<script>
+  // ====== DATE HEADER ======
+  function fmtDate(d) {
+    return d.toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  }
+  document.getElementById("today-date").textContent = fmtDate(new Date());
+
+  // ====== COPY PROMPTS ======
+  document.querySelectorAll("[data-copy]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const text = btn.closest(".prompt").querySelector(".prompt-text").textContent;
+      try {
+        await navigator.clipboard.writeText(text);
+        const orig = btn.textContent;
+        btn.textContent = "Copied!";
+        btn.classList.add("copied");
+        setTimeout(() => { btn.textContent = orig; btn.classList.remove("copied"); }, 1400);
+      } catch (e) { /* clipboard may be blocked in sandbox */ }
+    });
+  });
+
+  // ====== TRACK FILTER ======
+  const TRACK_KEY = "dashboard.track";
+  function applyTrack(track) {
+    document.body.setAttribute("data-track", track);
+    document.querySelectorAll(".track-tab").forEach(b => {
+      const active = b.dataset.trackBtn === track;
+      b.classList.toggle("active", active);
+      b.setAttribute("aria-selected", active ? "true" : "false");
+    });
+    try { localStorage.setItem(TRACK_KEY, track); } catch (e) {}
+  }
+  document.querySelectorAll("[data-track-btn]").forEach(btn => {
+    btn.addEventListener("click", () => applyTrack(btn.dataset.trackBtn));
+  });
+  try {
+    const saved = localStorage.getItem(TRACK_KEY);
+    if (saved && ["all","cyber","design"].includes(saved)) applyTrack(saved);
+  } catch (e) {}
+
+  // ====== READING QUEUE ======
+  const QUEUE_KEY = "dashboard.queue";
+  function loadQueue() {
+    try { return JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]"); }
+    catch (e) { return []; }
+  }
+  function saveQueue(q) {
+    try { localStorage.setItem(QUEUE_KEY, JSON.stringify(q)); } catch (e) {}
+  }
+  function refreshSaveButtons() {
+    const queue = loadQueue();
+    const urls = new Set(queue.map(item => item.url));
+    document.querySelectorAll("[data-save]").forEach(btn => {
+      if (urls.has(btn.dataset.url)) {
+        btn.classList.add("saved");
+        btn.textContent = "✓ Saved";
+      } else {
+        btn.classList.remove("saved");
+        btn.textContent = "＋ Save";
+      }
+    });
+  }
+  function renderQueue() {
+    const queue = loadQueue();
+    const list = document.getElementById("queue-list");
+    const clearBtn = document.getElementById("queue-clear");
+    list.innerHTML = "";
+    if (queue.length === 0) {
+      list.innerHTML = '<div class="queue-empty">Nothing saved yet — your queue is clean.</div>';
+      clearBtn.style.display = "none";
+      return;
+    }
+    clearBtn.style.display = "inline-block";
+    queue.forEach((item, i) => {
+      const div = document.createElement("div");
+      div.className = "queue-item" + (item.done ? " done" : "");
+      div.innerHTML = `
+        <input type="checkbox" class="check" ${item.done ? "checked" : ""} data-queue-check="${i}" />
+        <div class="body">
+          <a class="title" href="${item.url}" target="_blank" rel="noopener"></a>
+          <div class="src"></div>
+        </div>
+        <button class="remove" data-queue-remove="${i}" title="Remove">×</button>
+      `;
+      div.querySelector(".title").textContent = item.title;
+      div.querySelector(".src").textContent = item.src;
+      list.appendChild(div);
+    });
+    list.querySelectorAll("[data-queue-check]").forEach(c => {
+      c.addEventListener("change", (e) => {
+        const idx = parseInt(e.target.dataset.queueCheck, 10);
+        const q = loadQueue();
+        if (q[idx]) { q[idx].done = e.target.checked; saveQueue(q); renderQueue(); }
+      });
+    });
+    list.querySelectorAll("[data-queue-remove]").forEach(r => {
+      r.addEventListener("click", (e) => {
+        const idx = parseInt(e.target.dataset.queueRemove, 10);
+        const q = loadQueue();
+        q.splice(idx, 1);
+        saveQueue(q);
+        renderQueue();
+        refreshSaveButtons();
+      });
+    });
+  }
+  document.querySelectorAll("[data-save]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const queue = loadQueue();
+      const idx = queue.findIndex(i => i.url === btn.dataset.url);
+      if (idx >= 0) {
+        queue.splice(idx, 1);
+      } else {
+        queue.push({
+          title: btn.dataset.title,
+          url: btn.dataset.url,
+          src: btn.dataset.src,
+          done: false
+        });
+      }
+      saveQueue(queue);
+      renderQueue();
+      refreshSaveButtons();
+    });
+  });
+  document.getElementById("queue-clear").addEventListener("click", () => {
+    saveQueue([]);
+    renderQueue();
+    refreshSaveButtons();
+  });
+  renderQueue();
+  refreshSaveButtons();
+
+  // ====== LEARNING PATH PROGRESS ======
+  const PROGRESS_KEY = "dashboard.learning";
+  const CIRCUMFERENCE = 2 * Math.PI * 15;
+  function loadProgress() {
+    try { return JSON.parse(localStorage.getItem(PROGRESS_KEY) || "{}"); }
+    catch (e) { return {}; }
+  }
+  function saveProgress(p) {
+    try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(p)); } catch (e) {}
+  }
+  function updateProgressRing() {
+    const items = document.querySelectorAll("#resource-list .resource");
+    const total = items.length;
+    let done = 0;
+    items.forEach(item => { if (item.classList.contains("done")) done++; });
+    const ratio = total > 0 ? done / total : 0;
+    const offset = CIRCUMFERENCE * (1 - ratio);
+    const fg = document.querySelector("#progress-ring .fg");
+    fg.setAttribute("stroke-dasharray", CIRCUMFERENCE.toFixed(2));
+    fg.setAttribute("stroke-dashoffset", offset.toFixed(2));
+    document.getElementById("progress-label").textContent = `${done} / ${total}`;
+  }
+  function initProgress() {
+    const state = loadProgress();
+    document.querySelectorAll("#resource-list .resource").forEach(item => {
+      const key = item.dataset.key;
+      const check = item.querySelector("[data-check]");
+      const done = !!state[key];
+      check.checked = done;
+      item.classList.toggle("done", done);
+      check.addEventListener("change", () => {
+        const s = loadProgress();
+        s[key] = check.checked;
+        saveProgress(s);
+        item.classList.toggle("done", check.checked);
+        updateProgressRing();
+      });
+      check.addEventListener("click", e => e.stopPropagation());
+    });
+    updateProgressRing();
+  }
+  initProgress();
+</script>
+</body>
+</html>
