@@ -1,0 +1,31 @@
+# OS cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor metadata
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+
+# Node (not used here, but in case)
+node_modules/
+
+# Local-only / scratch
+github-hosting/
+outputs/
+*.tmp
+*.log
+
+# Cowork artifact backups
+*.bak

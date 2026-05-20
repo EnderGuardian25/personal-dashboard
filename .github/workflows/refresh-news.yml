@@ -1,0 +1,51 @@
+# .github/workflows/refresh-news.yml
+#
+# Runs daily and rewrites the news section of index.html
+# from public RSS feeds. The committed change triggers GitHub Pages to
+# republish the site.
+#
+# Drop this file into the repo at exactly this path:
+#   .github/workflows/refresh-news.yml
+
+name: Refresh AI dashboard news
+
+on:
+  # 01:30 UTC = 07:00 Sri Lanka time (UTC+5:30)
+  schedule:
+    - cron: "30 1 * * *"
+  # Lets you trigger a refresh manually from the Actions tab
+  workflow_dispatch:
+
+permissions:
+  contents: write   # needed so the bot can commit the updated HTML
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install feedparser
+
+      - name: Refresh the news section
+        run: python scripts/refresh-news.py
+
+      - name: Commit the updated HTML
+        run: |
+          git config user.name  "dashboard-bot"
+          git config user.email "dashboard-bot@users.noreply.github.com"
+          if ! git diff --quiet -- index.html; then
+            git add index.html
+            git commit -m "chore(news): daily refresh $(date -u +'%Y-%m-%d')"
+            git push
+          else
+            echo "No changes — nothing to commit."
+          fi
