@@ -111,6 +111,39 @@ function normaliseState(raw) {
   };
 }
 
+export function mergeState(existing, incoming) {
+  const queueByUrl = new Map();
+
+  for (const item of existing.queue || []) {
+    queueByUrl.set(item.url, { ...item });
+  }
+  for (const item of incoming.queue || []) {
+    const prev = queueByUrl.get(item.url);
+    if (prev) {
+      queueByUrl.set(item.url, {
+        ...prev,
+        title: item.title ?? prev.title,
+        src: item.src ?? prev.src,
+        done: prev.done || item.done,
+      });
+    } else {
+      queueByUrl.set(item.url, { ...item });
+    }
+  }
+
+  const learning = { ...(existing.learning || {}) };
+  for (const [key, value] of Object.entries(incoming.learning || {})) {
+    learning[key] = Boolean(learning[key]) || Boolean(value);
+  }
+
+  return {
+    queue: Array.from(queueByUrl.values()),
+    learning,
+    track: incoming.track,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
 // ---------- Handlers ----------
 
 async function handleHealth(request, env) {
@@ -137,7 +170,18 @@ async function handlePutState(request, env) {
     );
   }
 
-  const state = normaliseState(body);
+  const rawExisting = await env.DASHBOARD_KV.get(STATE_KEY);
+  let existingParsed = DEFAULT_STATE;
+  if (rawExisting) {
+    try {
+      existingParsed = JSON.parse(rawExisting);
+    } catch {
+      existingParsed = DEFAULT_STATE;
+    }
+  }
+
+  const incoming = normaliseState(body);
+  const state = mergeState(existingParsed, incoming);
   await env.DASHBOARD_KV.put(STATE_KEY, JSON.stringify(state));
 
   return json(
