@@ -775,12 +775,19 @@
       <section class="card">
         <div class="section-head">
           <h2>📰 Today in AI <span class="badge live">Daily</span></h2>
-          <p class="section-sub" id="news-meta">Updated 1 September 2026 · 06:57 SLT</p>
+          <p class="section-sub" id="news-meta">Updated 2 September 2026 · 06:05 SLT</p>
         </div>
         <div class="news-summary">
-  <strong>Top stories:</strong> A lawsuit from Sony cites internal Anthropic chat logs where staff praised Z-Library, a piracy site, raising questions about training data sourcing practices heading into tighter regulatory scrutiny. OpenAI is cutting off API access for SpaceX-owned Cursor, an AI code editor, over what appears to be a business dispute. Apple filed a case against a former employee accused of stealing company data and passing it to OpenAI, with Apple calling the evidence "shocking." On the tools side, someone shipped Saccade, a browser extension that shows live semantic information to help AI agents verify facts in real time. ChatGPT became the first AI chatbot to fall under the EU's stricter AI rules, imposing new transparency and accountability requirements. Meanwhile, a deeper look at the AI chip race suggests the real moat isn't raw GPU production but the advanced packaging technology required to connect them—a constraint that might matter more than raw compute for your understanding of where actual competitive advantage sits in the infrastructure stack.
+  <strong>Top stories:</strong> Google rolled out agentic video understanding in Gemini, letting the model analyze and act on video content directly. Anthropic staff messages praising Z-Library (a piracy site) have surfaced in Sony's lawsuit against the company, raising questions about how internal culture around copyright maps to corporate liability. Claude Fable 5.1 generated illustrated content well enough that Simon Willison used it to create an animated pelican, showing incremental gains in creative output. Google released Gemini 3.8 Flash, a coding-focused model said to close the gap on programming tasks, and separate reporting flagged security concerns about letting Gemini access Gmail inbox data. A few headlines also touched on AI coding agents as practical tools for real development work. If you're building security tools, the Gemini Gmail access issue is worth a look—it's a concrete example of how permission models and data access boundaries fail when end users don't understand what they're granting.
 </div>
         <div id="news-feed" class="news-list">
+          <div class="news-item">
+            <div class="body">
+              <a class="title-link" href="https://deepmind.google/blog/introducing-agentic-video-in-gemini/" target="_blank" rel="noopener">Introducing agentic video understanding with Gemini</a>
+              <div class="src">DeepMind · deepmind.google</div>
+            </div>
+            <button class="save-btn" data-save data-title="Introducing agentic video understanding with Gemini" data-url="https://deepmind.google/blog/introducing-agentic-video-in-gemini/" data-src="DeepMind · deepmind.google">＋ Save</button>
+          </div>
           <div class="news-item">
             <div class="body">
               <a class="title-link" href="https://arstechnica.com/tech-policy/2026/08/zlibrary-my-beloved-anthropic-staff-chats-extolling-piracy-cited-in-sony-suit/" target="_blank" rel="noopener">“Zlibrary my beloved”: Anthropic staff chats extolling piracy cited in Sony suit</a>
@@ -790,38 +797,31 @@
           </div>
           <div class="news-item">
             <div class="body">
-              <a class="title-link" href="https://www.reuters.com/business/media-telecom/openai-end-partnership-with-spacexs-cursor-2026-08-29/" target="_blank" rel="noopener">OpenAI to Cut Off AI Models for SpaceX-Owned Cursor</a>
-              <div class="src">Hacker News AI · reuters.com</div>
+              <a class="title-link" href="https://simonwillison.net/2026/Sep/1/claude-fable-5-1/" target="_blank" rel="noopener">Claude Fable 5.1 made me a really nice animated pelican</a>
+              <div class="src">Simon Willison · simonwillison.net</div>
             </div>
-            <button class="save-btn" data-save data-title="OpenAI to Cut Off AI Models for SpaceX-Owned Cursor" data-url="https://www.reuters.com/business/media-telecom/openai-end-partnership-with-spacexs-cursor-2026-08-29/" data-src="Hacker News AI · reuters.com">＋ Save</button>
+            <button class="save-btn" data-save data-title="Claude Fable 5.1 made me a really nice animated pelican" data-url="https://simonwillison.net/2026/Sep/1/claude-fable-5-1/" data-src="Simon Willison · simonwillison.net">＋ Save</button>
           </div>
           <div class="news-item">
             <div class="body">
-              <a class="title-link" href="https://techcrunch.com/2026/08/31/apple-shares-shocking-evidence-against-former-employee-accused-of-stealing-company-data-for-openai/" target="_blank" rel="noopener">Apple shares ‘shocking evidence’ against former employee accused of stealing company data for OpenAI</a>
-              <div class="src">TechCrunch AI · techcrunch.com</div>
+              <a class="title-link" href="https://www.wsj.com/tech/ai/new-google-ai-model-said-to-narrow-gap-on-coding-ability-264c6052" target="_blank" rel="noopener">New Google AI Model Said to Narrow Gap on Coding Ability (Gemini 3.8 Flash)</a>
+              <div class="src">Hacker News AI · wsj.com</div>
             </div>
-            <button class="save-btn" data-save data-title="Apple shares ‘shocking evidence’ against former employee accused of stealing company data for OpenAI" data-url="https://techcrunch.com/2026/08/31/apple-shares-shocking-evidence-against-former-employee-accused-of-stealing-company-data-for-openai/" data-src="TechCrunch AI · techcrunch.com">＋ Save</button>
+            <button class="save-btn" data-save data-title="New Google AI Model Said to Narrow Gap on Coding Ability (Gemini 3.8 Flash)" data-url="https://www.wsj.com/tech/ai/new-google-ai-model-said-to-narrow-gap-on-coding-ability-264c6052" data-src="Hacker News AI · wsj.com">＋ Save</button>
           </div>
           <div class="news-item">
             <div class="body">
-              <a class="title-link" href="https://github.com/nanlogic/saccade" target="_blank" rel="noopener">Show HN: Saccade – Live semantic browser truth for AI agents</a>
+              <a class="title-link" href="https://tuta.com/blog/google-gemini-ai-email" target="_blank" rel="noopener">Don&#x27;t allow Gemini AI access to your Gmail</a>
+              <div class="src">Hacker News AI · tuta.com</div>
+            </div>
+            <button class="save-btn" data-save data-title="Don&#x27;t allow Gemini AI access to your Gmail" data-url="https://tuta.com/blog/google-gemini-ai-email" data-src="Hacker News AI · tuta.com">＋ Save</button>
+          </div>
+          <div class="news-item">
+            <div class="body">
+              <a class="title-link" href="https://github.com/mattpocock/skills" target="_blank" rel="noopener">AI Coding Agent Skills for Real Engineers</a>
               <div class="src">Hacker News AI · github.com</div>
             </div>
-            <button class="save-btn" data-save data-title="Show HN: Saccade – Live semantic browser truth for AI agents" data-url="https://github.com/nanlogic/saccade" data-src="Hacker News AI · github.com">＋ Save</button>
-          </div>
-          <div class="news-item">
-            <div class="body">
-              <a class="title-link" href="https://www.lemonde.fr/en/pixels/article/2026/08/31/chatgpt-becomes-first-ai-chatbot-to-face-tougher-eu-rules_6757011_13.html" target="_blank" rel="noopener">ChatGPT becomes first AI chatbot to face tougher EU rules</a>
-              <div class="src">Hacker News AI · lemonde.fr</div>
-            </div>
-            <button class="save-btn" data-save data-title="ChatGPT becomes first AI chatbot to face tougher EU rules" data-url="https://www.lemonde.fr/en/pixels/article/2026/08/31/chatgpt-becomes-first-ai-chatbot-to-face-tougher-eu-rules_6757011_13.html" data-src="Hacker News AI · lemonde.fr">＋ Save</button>
-          </div>
-          <div class="news-item">
-            <div class="body">
-              <a class="title-link" href="https://www.fenty.dev/intelligence/the-next-ai-moat-advanced-packaging" target="_blank" rel="noopener">The AI moat isn&#x27;t GPUs, it&#x27;s the advanced packaging they require</a>
-              <div class="src">Hacker News AI · fenty.dev</div>
-            </div>
-            <button class="save-btn" data-save data-title="The AI moat isn&#x27;t GPUs, it&#x27;s the advanced packaging they require" data-url="https://www.fenty.dev/intelligence/the-next-ai-moat-advanced-packaging" data-src="Hacker News AI · fenty.dev">＋ Save</button>
+            <button class="save-btn" data-save data-title="AI Coding Agent Skills for Real Engineers" data-url="https://github.com/mattpocock/skills" data-src="Hacker News AI · github.com">＋ Save</button>
           </div>
         </div>
         <p style="margin-top:14px; font-size:12px; color:var(--ink-3); text-align:center;">
