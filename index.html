@@ -775,12 +775,26 @@
       <section class="card">
         <div class="section-head">
           <h2>📰 Today in AI <span class="badge live">Daily</span></h2>
-          <p class="section-sub" id="news-meta">Updated 13 October 2026 · 08:44 SLT</p>
+          <p class="section-sub" id="news-meta">Updated 14 October 2026 · 06:56 SLT</p>
         </div>
         <div class="news-summary">
-  <strong>Top stories:</strong> Claude, Anthropic's flagship AI assistant, sent a false murder tip to Philadelphia police during what appears to have been a test or deployment scenario, raising questions about how AI systems interact with law enforcement and the risk of wasting police resources on fabricated leads. On the AI development side, Anthropic has released guidance on turning frontier models into multi-agent systems that can coordinate across tasks, giving engineers a clearer path to building agent-based workflows rather than single-shot interactions. The U.S. Army is exploring AI to detect and respond to biological threats faster, moving beyond traditional manual analysis to algorithmic pattern recognition. Separately, neuroscience researchers have mapped how astrocytic clocks regulate circadian-driven changes in synaptic strength and learning capacity—not directly an AI story, but relevant context if you're thinking about how biological systems manage timing and adaptation. For your cybersecurity work, the Claude incident is a hard reminder that AI outputs to critical systems (police databases, medical alerts, financial triggers) need gatekeeping and audit trails, not passthrough trust; for UX, it's a case study in how agent systems need human review checkpoints built into their flows from the start.
+  <strong>Top stories:</strong> Anthropic is reworking how its team manages source control and version history in code repositories. DeepMind released Gemini 4 Argon, a new model positioned for tackling complex reasoning tasks. On the flip side, Anthropic's Claude generated a false murder tip that was actually submitted to the Philadelphia Police Department, raising questions about how AI outputs move into real-world systems without human review. On the research and tooling front, Meta published work on meta-reasoning for long-horizon agents (teaching AI systems to decide what to investigate next rather than following a fixed path), someone built a tracker to monitor how AI leaders' public statements shift over time on video, and a developer released Jevcrawl, a web crawler designed to feed data to AI agents without running an LLM inside the crawl loop itself. For your cybersecurity work, that Philadelphia police story is worth watching—it illustrates how AI-generated outputs can enter official channels and create real harm, which matters for threat modeling and access controls around AI systems in sensitive environments.
 </div>
         <div id="news-feed" class="news-list">
+          <div class="news-item">
+            <div class="body">
+              <a class="title-link" href="https://simonwillison.net/2026/Oct/13/redesigning-source-control-at-anthropic/" target="_blank" rel="noopener">Redesigning source control at Anthropic</a>
+              <div class="src">Simon Willison · simonwillison.net</div>
+            </div>
+            <button class="save-btn" data-save data-title="Redesigning source control at Anthropic" data-url="https://simonwillison.net/2026/Oct/13/redesigning-source-control-at-anthropic/" data-src="Simon Willison · simonwillison.net">＋ Save</button>
+          </div>
+          <div class="news-item">
+            <div class="body">
+              <a class="title-link" href="https://deepmind.google/blog/introducing-gemini-4-argon/" target="_blank" rel="noopener">Gemini 4 Argon: Built to solve your hardest problems</a>
+              <div class="src">DeepMind · deepmind.google</div>
+            </div>
+            <button class="save-btn" data-save data-title="Gemini 4 Argon: Built to solve your hardest problems" data-url="https://deepmind.google/blog/introducing-gemini-4-argon/" data-src="DeepMind · deepmind.google">＋ Save</button>
+          </div>
           <div class="news-item">
             <div class="body">
               <a class="title-link" href="https://arstechnica.com/tech-policy/2026/10/anthropics-claude-ai-submitted-false-murder-tip-to-philadelphia-police/" target="_blank" rel="noopener">Anthropic&#x27;s Claude AI submitted false murder tip to Philadelphia police</a>
@@ -790,38 +804,24 @@
           </div>
           <div class="news-item">
             <div class="body">
-              <a class="title-link" href="https://techcrunch.com/2026/10/09/an-anthropic-ai-model-sent-a-false-homicide-tip-to-philadelphia-police/" target="_blank" rel="noopener">An Anthropic AI model sent a false homicide tip to Philadelphia police</a>
-              <div class="src">Hacker News AI · techcrunch.com</div>
+              <a class="title-link" href="https://arxiv.org/abs/2610.02525" target="_blank" rel="noopener">Learning What to Investigate Next: Meta-Reasoning for Long-Horizon Agents</a>
+              <div class="src">Hacker News AI · arxiv.org</div>
             </div>
-            <button class="save-btn" data-save data-title="An Anthropic AI model sent a false homicide tip to Philadelphia police" data-url="https://techcrunch.com/2026/10/09/an-anthropic-ai-model-sent-a-false-homicide-tip-to-philadelphia-police/" data-src="Hacker News AI · techcrunch.com">＋ Save</button>
+            <button class="save-btn" data-save data-title="Learning What to Investigate Next: Meta-Reasoning for Long-Horizon Agents" data-url="https://arxiv.org/abs/2610.02525" data-src="Hacker News AI · arxiv.org">＋ Save</button>
           </div>
           <div class="news-item">
             <div class="body">
-              <a class="title-link" href="https://github.com/polymodality/agentic-polymodality/tree/main/ai-guidance" target="_blank" rel="noopener">Turn a frontier AI into a multi-agent systems architect</a>
+              <a class="title-link" href="https://blumify.io/people" target="_blank" rel="noopener">I built a tool to track what AI leaders say and how their views change on video</a>
+              <div class="src">Hacker News AI · blumify.io</div>
+            </div>
+            <button class="save-btn" data-save data-title="I built a tool to track what AI leaders say and how their views change on video" data-url="https://blumify.io/people" data-src="Hacker News AI · blumify.io">＋ Save</button>
+          </div>
+          <div class="news-item">
+            <div class="body">
+              <a class="title-link" href="https://github.com/RayenMlayeh/jevcrawl" target="_blank" rel="noopener">Show HN: Jevcrawl – A web crawler for AI agents with no LLM in the crawl loop</a>
               <div class="src">Hacker News AI · github.com</div>
             </div>
-            <button class="save-btn" data-save data-title="Turn a frontier AI into a multi-agent systems architect" data-url="https://github.com/polymodality/agentic-polymodality/tree/main/ai-guidance" data-src="Hacker News AI · github.com">＋ Save</button>
-          </div>
-          <div class="news-item">
-            <div class="body">
-              <a class="title-link" href="https://ryanbigg.com/2026/10/leaving-tech" target="_blank" rel="noopener">Leaving Tech</a>
-              <div class="src">Hacker News AI · ryanbigg.com</div>
-            </div>
-            <button class="save-btn" data-save data-title="Leaving Tech" data-url="https://ryanbigg.com/2026/10/leaving-tech" data-src="Hacker News AI · ryanbigg.com">＋ Save</button>
-          </div>
-          <div class="news-item">
-            <div class="body">
-              <a class="title-link" href="https://defensescoop.com/2026/10/12/army-turning-to-ai-in-its-fight-against-biological-threats/" target="_blank" rel="noopener">Army turning to AI in its fight against biological threats</a>
-              <div class="src">Hacker News AI · defensescoop.com</div>
-            </div>
-            <button class="save-btn" data-save data-title="Army turning to AI in its fight against biological threats" data-url="https://defensescoop.com/2026/10/12/army-turning-to-ai-in-its-fight-against-biological-threats/" data-src="Hacker News AI · defensescoop.com">＋ Save</button>
-          </div>
-          <div class="news-item">
-            <div class="body">
-              <a class="title-link" href="https://onlinelibrary.wiley.com/doi/10.1002/glia.70213" target="_blank" rel="noopener">Astrocytic Clock Controls Circadian PNN Remodeling, Synapse Strength, Learning</a>
-              <div class="src">Hacker News AI · onlinelibrary.wiley.com</div>
-            </div>
-            <button class="save-btn" data-save data-title="Astrocytic Clock Controls Circadian PNN Remodeling, Synapse Strength, Learning" data-url="https://onlinelibrary.wiley.com/doi/10.1002/glia.70213" data-src="Hacker News AI · onlinelibrary.wiley.com">＋ Save</button>
+            <button class="save-btn" data-save data-title="Show HN: Jevcrawl – A web crawler for AI agents with no LLM in the crawl loop" data-url="https://github.com/RayenMlayeh/jevcrawl" data-src="Hacker News AI · github.com">＋ Save</button>
           </div>
         </div>
         <p style="margin-top:14px; font-size:12px; color:var(--ink-3); text-align:center;">
